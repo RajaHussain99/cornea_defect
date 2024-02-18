@@ -9,7 +9,7 @@ const Draw = () => {
   const height= location?.state?.height;
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-8 bg-white rounded-md shadow-md">
+    <div className="max-w-md mx-auto mt-8 p-20 bg-white rounded-md shadow-md">
       <p className="text-lg font-semibold mb-4">Draw Page</p>
       
       {uploadedImage && (

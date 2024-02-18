@@ -261,15 +261,16 @@ const DrawLinesOnImage = ({ imageSrc }) => {
         ref={imageCanvasRef}
         width={canvasWidth}
         height={canvasHeight}
-        style={{ position: 'absolute top-0 left-0', zIndex: 1 }}
+        style={{ position: 'absolute', top: '0', zIndex: 1 }}
       />
       <canvas
         ref={linesCanvasRef}
         width={canvasWidth}
         height={canvasHeight}
-        style={{ position: 'absolute top-0 left-0', zIndex: 2, touchAction: 'none' }} // Add touchAction property
+        style={{ position: 'absolute', top: '0', zIndex: 2, touchAction: 'none' }} // Add touchAction property
       />
-      <div className="absolute bottom-0 left-0 p-0">
+      
+      <div className="absolute bottom-20">
         <label className="text-sm font-semibold mb-1 block">Patient ID:</label>
         <input
           type="text"
@@ -280,14 +281,15 @@ const DrawLinesOnImage = ({ imageSrc }) => {
         {/* <h2>Label: {lineLengths[0] ? `${lineLengths[0].toFixed(2)} px` : 'Not drawn yet'}</h2>
         <h2>Hor Object: {lineLengths[1] ? `${lineLengths[1].toFixed(2)} px` : 'Not drawn yet'}</h2>
         <h2>Vert. Object: {lineLengths[2] ? `${lineLengths[2].toFixed(2)} px` : 'Not drawn yet'}</h2> */}
-        <h3>Hor. Length: {calculateHorizontalSizeInInches()}</h3>
-        <h3>Vert. Length: {calculateVerticalSizeInInches()}</h3>
+        <h3>Horizontal Length: {calculateHorizontalSizeInInches()}</h3>
+        <h3>Vertical Length: {calculateVerticalSizeInInches()}</h3>
 
+        <div className="flex">
         <button
           onClick={resetLines}
           className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-md ml-2"
         >
-          Reset Lines
+          Reset
         </button>
         <button
           onClick={submit}
@@ -295,6 +297,7 @@ const DrawLinesOnImage = ({ imageSrc }) => {
         >
           Submit
         </button>
+        </div>
       </div>
     </div>
   );
