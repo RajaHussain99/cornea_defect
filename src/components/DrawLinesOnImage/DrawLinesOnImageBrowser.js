@@ -1,19 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import AWS from 'aws-sdk';
 
+
+
+
 const DrawLinesOnImage = ({ imageSrc }) => {
-  // State variables and refs
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
-  const canvasWidth = 450; // Set your desired width
-  const canvasHeight = 600; // Set your desired height
+  const canvasWidth = 756; // Set your desired width
+  const canvasHeight = 1008; // Set your desired height
   const [patientID, setPatientID] = useState('');
   const [lineLengths, setLineLengths] = useState([]);
+
   const imageCanvasRef = useRef(null);
   const linesCanvasRef = useRef(null);
   const [lines, setLines] = useState([]);
   const [drawing, setDrawing] = useState(false);
 
-  // AWS S3 configuration
+
   const region = "us-east-1"
   const accessKeyId = 'REDACT'
   const secretAccessKey = 'REDACT'
@@ -22,30 +25,31 @@ const DrawLinesOnImage = ({ imageSrc }) => {
     accessKeyId,
     secretAccessKey,
     signatureVersion: 'v4'
-  });
+  })
 
   useEffect(() => {
-    // Function to draw the image on the canvas
-    const drawImageOnCanvas = () => {
-      const imageCanvas = imageCanvasRef.current;
-      const imageCtx = imageCanvas.getContext('2d');
+    const imageCanvas = imageCanvasRef.current;
+    const imageCtx = imageCanvas.getContext('2d');
 
-      const image = new Image();
-      image.src = imageSrc;
+    const image = new Image();
+    image.src = imageSrc;
 
-      image.onload = () => {
-        const scale = Math.min(canvasWidth / image.width, canvasHeight / image.height);
-        const scaledWidth = image.width * scale;
-        const scaledHeight = image.height * scale;
+    image.onload = () => {
+      const scale = Math.min(canvasWidth / image.width, canvasHeight / image.height);
+      const scaledWidth = image.width * scale;
+      const scaledHeight = image.height * scale;
 
-        const startX = (canvasWidth - scaledWidth) / 2;
-        const startY = (canvasHeight - scaledHeight) / 2;
+      const startX = (canvasWidth - scaledWidth) / 2;
+      const startY = (canvasHeight - scaledHeight) / 2;
 
-        imageCtx.drawImage(image, startX, startY, scaledWidth, scaledHeight);
-      };
+      imageCtx.drawImage(image, startX, startY, scaledWidth, scaledHeight);
+
+      // imageCtx.beginPath();
+      // imageCtx.arc(startX + 100, startY + 100, 50, 0, 2 * Math.PI);
+      // imageCtx.fillStyle = 'red';
+      // imageCtx.fill();
+      // imageCtx.closePath();
     };
-
-    drawImageOnCanvas();
   }, [imageSrc]);
 
   const calculateLineLength = (line) => {
@@ -242,11 +246,8 @@ const DrawLinesOnImage = ({ imageSrc }) => {
         onMouseMove={drawLine}
         onMouseUp={stopDrawing}
         onMouseOut={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={drawLine}
-        onTouchEnd={stopDrawing}
       />
-      <div className="absolute bottom-0 left-0 p-0">
+      <div className="absolute bottom-0 left-0 p-4">
         <label className="text-sm font-semibold mb-1 block">Patient ID:</label>
         <input
           type="text"
