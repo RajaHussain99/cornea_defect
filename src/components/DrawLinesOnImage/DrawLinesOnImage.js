@@ -4,8 +4,8 @@ import AWS from 'aws-sdk';
 const DrawLinesOnImage = ({ imageSrc }) => {
   // State variables and refs
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
-  const canvasWidth = 450; // Set your desired width
-  const canvasHeight = 600; // Set your desired height
+  const canvasWidth = 378; // Set your desired width
+  const canvasHeight = 504; // Set your desired height
   const [patientID, setPatientID] = useState('');
   const [lineLengths, setLineLengths] = useState([]);
   const imageCanvasRef = useRef(null);
