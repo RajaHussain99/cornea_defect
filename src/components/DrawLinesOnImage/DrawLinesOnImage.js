@@ -63,21 +63,27 @@ const DrawLinesOnImage = ({ imageSrc }) => {
   };
 
   const handleTouchStart = (e) => {
+    e.preventDefault(); // Prevent default touch behavior
+    
     if (lines.length >= 3) return; // Limit to 3 lines
   
     const touch = e.touches[0];
-    const offsetX = touch.clientX - touch.target.offsetLeft;
-    const offsetY = touch.clientY - touch.target.offsetTop;
+    const rect = e.target.getBoundingClientRect(); // Get the canvas bounding rectangle
+    const offsetX = touch.clientX - rect.left; // Calculate offsetX relative to the canvas
+    const offsetY = touch.clientY - rect.top; // Calculate offsetY relative to the canvas
     setLines([...lines, { startX: offsetX, startY: offsetY, endX: offsetX, endY: offsetY, length: 0 }]);
     setDrawing(true);
   };
   
   const handleTouchMove = (e) => {
+    e.preventDefault(); // Prevent default touch behavior
+  
     if (!drawing) return;
   
     const touch = e.touches[0];
-    const offsetX = touch.clientX - touch.target.offsetLeft;
-    const offsetY = touch.clientY - touch.target.offsetTop;
+    const rect = e.target.getBoundingClientRect(); // Get the canvas bounding rectangle
+    const offsetX = touch.clientX - rect.left; // Calculate offsetX relative to the canvas
+    const offsetY = touch.clientY - rect.top; // Calculate offsetY relative to the canvas
     const lastIndex = lines.length - 1;
     const updatedLines = [...lines];
     updatedLines[lastIndex] = {
