@@ -62,6 +62,34 @@ const DrawLinesOnImage = ({ imageSrc }) => {
     }
   };
 
+  const handleTouchStart = (e) => {
+    if (lines.length >= 3) return; // Limit to 3 lines
+  
+    const touch = e.touches[0];
+    const offsetX = touch.clientX - touch.target.offsetLeft;
+    const offsetY = touch.clientY - touch.target.offsetTop;
+    setLines([...lines, { startX: offsetX, startY: offsetY, endX: offsetX, endY: offsetY, length: 0 }]);
+    setDrawing(true);
+  };
+  
+  const handleTouchMove = (e) => {
+    if (!drawing) return;
+  
+    const touch = e.touches[0];
+    const offsetX = touch.clientX - touch.target.offsetLeft;
+    const offsetY = touch.clientY - touch.target.offsetTop;
+    const lastIndex = lines.length - 1;
+    const updatedLines = [...lines];
+    updatedLines[lastIndex] = {
+      ...updatedLines[lastIndex],
+      endX: offsetX,
+      endY: offsetY,
+      length: calculateLineLength(updatedLines[lastIndex]),
+    };
+    setLines(updatedLines);
+  };
+  
+
   const drawLine = (e) => {
     if (!drawing) return;
   
@@ -242,8 +270,8 @@ const DrawLinesOnImage = ({ imageSrc }) => {
         onMouseMove={drawLine}
         onMouseUp={stopDrawing}
         onMouseOut={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={drawLine}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         onTouchEnd={stopDrawing}
       />
       <div className="absolute bottom-0 left-0 p-0">
