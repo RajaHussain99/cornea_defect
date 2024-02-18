@@ -3,15 +3,15 @@ import AWS from 'aws-sdk';
 
 const DrawLinesOnImage = ({ imageSrc }) => {
   // State variables and refs
-  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
-  const canvasWidth = 378; // Set your desired width
-  const canvasHeight = 504; // Set your desired height
   const [patientID, setPatientID] = useState('');
   const [lineLengths, setLineLengths] = useState([]);
-  const imageCanvasRef = useRef(null);
-  const linesCanvasRef = useRef(null);
   const [lines, setLines] = useState([]);
   const [drawing, setDrawing] = useState(false);
+
+  const canvasWidth = 378; // Set your desired width
+  const canvasHeight = 504; // Set your desired height
+  const imageCanvasRef = useRef(null);
+  const linesCanvasRef = useRef(null);
 
   // AWS S3 configuration
   const region = "us-east-1"
@@ -48,97 +48,93 @@ const DrawLinesOnImage = ({ imageSrc }) => {
     drawImageOnCanvas();
   }, [imageSrc]);
 
-  const calculateLineLength = (line) => {
-    const dx = line.endX - line.startX;
-    const dy = line.endY - line.startY;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
+  useEffect(() => {
+    const canvas = linesCanvasRef.current;
+    const ctx = canvas.getContext('2d');
 
-  const startDrawing = (e) => {
-    if (lines.length < 3) {
-      setDrawing(true);
-      const { offsetX, offsetY } = e.nativeEvent;
-      setLines([...lines, { startX: offsetX, startY: offsetY, length: 0 }]);
-    }
-  };
-
-  const handleTouchStart = (e) => {
-    e.preventDefault(); // Prevent default touch behavior
-    
-    if (lines.length >= 3) return; // Limit to 3 lines
-  
-    const touch = e.touches[0];
-    const rect = e.target.getBoundingClientRect(); // Get the canvas bounding rectangle
-    const offsetX = touch.clientX - rect.left; // Calculate offsetX relative to the canvas
-    const offsetY = touch.clientY - rect.top; // Calculate offsetY relative to the canvas
-    setLines([...lines, { startX: offsetX, startY: offsetY, endX: offsetX, endY: offsetY, length: 0 }]);
-    setDrawing(true);
-  };
-  
-  const handleTouchMove = (e) => {
-    e.preventDefault(); // Prevent default touch behavior
-  
-    if (!drawing) return;
-  
-    const touch = e.touches[0];
-    const rect = e.target.getBoundingClientRect(); // Get the canvas bounding rectangle
-    const offsetX = touch.clientX - rect.left; // Calculate offsetX relative to the canvas
-    const offsetY = touch.clientY - rect.top; // Calculate offsetY relative to the canvas
-    const lastIndex = lines.length - 1;
-    const updatedLines = [...lines];
-    updatedLines[lastIndex] = {
-      ...updatedLines[lastIndex],
-      endX: offsetX,
-      endY: offsetY,
-      length: calculateLineLength(updatedLines[lastIndex]),
+    const handleTouchStart = (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const offsetX = touch.clientX - rect.left;
+      const offsetY = touch.clientY - rect.top;
+      if (lines.length < 3) {
+        setLines([...lines, { startX: offsetX, startY: offsetY, endX: offsetX, endY: offsetY }]);
+        setDrawing(true);
+      }
     };
-    setLines(updatedLines);
-  };
-  
 
-  const drawLine = (e) => {
-    if (!drawing) return;
-  
-    const { offsetX, offsetY } = e.nativeEvent;
-    const updatedLines = [...lines];
-    const lastIndex = updatedLines.length - 1;
-    updatedLines[lastIndex] = {
-      ...updatedLines[lastIndex],
-      endX: offsetX,
-      endY: offsetY,
-      length: calculateLineLength(updatedLines[lastIndex]),
+    const handleTouchMove = (e) => {
+      e.preventDefault();
+      if (!drawing) return;
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const offsetX = touch.clientX - rect.left;
+      const offsetY = touch.clientY - rect.top;
+      const lastIndex = lines.length - 1;
+      const updatedLines = [...lines];
+      updatedLines[lastIndex] = {
+        ...updatedLines[lastIndex],
+        endX: offsetX,
+        endY: offsetY
+      };
+      setLines(updatedLines);
     };
-    setLines(updatedLines);
-  
-    const updatedLineLengths = updatedLines.map((line) => line.length);
-    setLineLengths(updatedLineLengths);
-  
-    const linesCanvas = linesCanvasRef.current;
-    const linesCtx = linesCanvas.getContext('2d');
-  
-    linesCtx.clearRect(0, 0, linesCanvas.width, linesCanvas.height);
-  
-    updatedLines.forEach((line) => {
-      linesCtx.beginPath();
-      linesCtx.moveTo(line.startX, line.startY);
-      linesCtx.lineTo(line.endX, line.endY);
-      linesCtx.strokeStyle = 'blue';
-      linesCtx.lineWidth = 2;
-      linesCtx.stroke();
-  
-      const textX = line.endX + 5;
-      const textY = line.endY - 5;
-  
-      linesCtx.font = '24px Arial';
-      linesCtx.fillStyle = 'white';
-      linesCtx.fillText(`${line.length.toFixed(2)} px`, textX, textY);
+
+    const handleTouchEnd = () => {
+      setDrawing(false);
+      calculateLineLengths();
+    };
+
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [drawing, lines]);
+
+  const calculateLineLengths = () => {
+    const lengths = lines.map((line) => {
+      const dx = line.endX - line.startX;
+      const dy = line.endY - line.startY;
+      return Math.sqrt(dx * dx + dy * dy);
     });
+    setLineLengths(lengths);
   };
 
-  const stopDrawing = () => {
-    setDrawing(false);
-    //setLineLengths(lines.slice(-2).map((line) => line.length));
+  const drawLines = () => {
+    const canvas = linesCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    lines.forEach(line => {
+      ctx.beginPath();
+      ctx.moveTo(line.startX, line.startY);
+      ctx.lineTo(line.endX, line.endY);
+      ctx.strokeStyle = 'blue';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.closePath();
+
+      const length = Math.sqrt(Math.pow(line.endX - line.startX, 2) + Math.pow(line.endY - line.startY, 2));
+      console.log(length)
+
+    // Display length next to the line
+      ctx.font = '12px Arial';
+      ctx.fillStyle = 'white';
+      ctx.fillText(`${length.toFixed(2)} px`, (line.startX + line.endX) / 2, (line.startY + line.endY) / 2);
+
+      
+  });
   };
+
+  useEffect(() => {
+    drawLines();
+  }, [lines]);
 
   const resetLines = () => {
     setLines([]);
@@ -260,25 +256,18 @@ const DrawLinesOnImage = ({ imageSrc }) => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div className="relative h-screen flex flex-col justify-center items-center">
       <canvas
         ref={imageCanvasRef}
         width={canvasWidth}
         height={canvasHeight}
-        style={{ position: 'absolute', zIndex: 1 }}
+        style={{ position: 'absolute top-0 left-0', zIndex: 1 }}
       />
       <canvas
         ref={linesCanvasRef}
         width={canvasWidth}
         height={canvasHeight}
-        style={{ position: 'absolute', zIndex: 2 }}
-        onMouseDown={startDrawing}
-        onMouseMove={drawLine}
-        onMouseUp={stopDrawing}
-        onMouseOut={stopDrawing}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={stopDrawing}
+        style={{ position: 'absolute top-0 left-0', zIndex: 2, touchAction: 'none' }} // Add touchAction property
       />
       <div className="absolute bottom-0 left-0 p-0">
         <label className="text-sm font-semibold mb-1 block">Patient ID:</label>

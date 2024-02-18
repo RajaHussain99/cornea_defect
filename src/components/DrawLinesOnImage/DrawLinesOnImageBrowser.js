@@ -1,9 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import AWS from 'aws-sdk';
 
-
-
-
 const DrawLinesOnImage = ({ imageSrc }) => {
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const canvasWidth = 756; // Set your desired width
@@ -230,7 +227,7 @@ const DrawLinesOnImage = ({ imageSrc }) => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div className="flex items-center justify-center h-screen" style={{ overflowY: 'hidden' }}>
       <canvas
         ref={imageCanvasRef}
         width={canvasWidth}
@@ -241,7 +238,7 @@ const DrawLinesOnImage = ({ imageSrc }) => {
         ref={linesCanvasRef}
         width={canvasWidth}
         height={canvasHeight}
-        style={{ position: 'absolute', zIndex: 2 }}
+        style={{ position: 'absolute', zIndex: 2, touchAction: 'none' }} // Add touchAction property
         onMouseDown={startDrawing}
         onMouseMove={drawLine}
         onMouseUp={stopDrawing}
