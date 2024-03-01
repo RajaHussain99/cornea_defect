@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import DrawLinesOnImage from './DrawLinesOnImage/DrawLinesOnImage';
+import DrawLinesOnImage from './DrawLinesOnImage/DrawLinesonImageController';
 
 const Draw = () => {
   const location = useLocation();
