@@ -1,16 +1,14 @@
 // Import necessary hooks and AWS SDK
 import React, { useState, useRef, useEffect } from 'react';
-import { Joystick } from 'react-joystick-component';
-import { action } from '@storybook/addon-actions'; // Import `action` for logging
+import { useLocation } from 'react-router-dom';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid'
-import AWS from 'aws-sdk';
 
 // Define the React component, receiving `imageSrc` as a prop
-const DrawLinesOnImage = ({ imageSrc }) => {
+const ReferenceObject = ({ imageSrc ={uploadedImage} }) => {
   // State hooks to manage component state
-  const [patientID, setPatientID] = useState(''); // Stores patient ID
-  const [lineLengths, setLineLengths] = useState([]); // Stores lengths of drawn lines
-  const [lines, setLines] = useState([]); // Stores line coordinates
+  const [referenceDimensions, setrefrenceDimensions] = useState(''); // Stores patient ID
+  const [lineLength, setLineLength] = useState([]); // Stores lengths of drawn lines
+  const [line, setLine] = useState([]); // Stores line coordinates
   const [drawing, setDrawing] = useState(false); // Flag to manage drawing state
   const [selectedPoint, setSelectedPoint] = useState('start'); // New state for selected point
   const [selectedLineIndex, setSelectedLineIndex] = useState(null); // For joystick to know which line to adjust
@@ -22,17 +20,6 @@ const DrawLinesOnImage = ({ imageSrc }) => {
   const imageCanvasRef = useRef(null);
   const linesCanvasRef = useRef(null);
 
-  // AWS S3 configuration
-  const region = "us-east-1";
-  const accessKeyId = 'REDACT';
-  const secretAccessKey = 'REDACT';
-  // Initialize AWS S3 with the provided credentials
-  const s3 = new AWS.S3({
-    region,
-    accessKeyId,
-    secretAccessKey,
-    signatureVersion: 'v4'
-  });
 
   // Effect hook to draw the image on the canvas when the image source changes
   useEffect(() => {
@@ -77,8 +64,8 @@ const DrawLinesOnImage = ({ imageSrc }) => {
       const offsetX = touch.clientX - rect.left;
       const offsetY = touch.clientY - rect.top;
       // Limit the number of lines to 3 and start drawing
-      if (lines.length < 3) {
-        setLines([...lines, { startX: offsetX, startY: offsetY, endX: offsetX, endY: offsetY }]);
+      if (line.length < 3) {
+        setLine([...line, { startX: offsetX, startY: offsetY, endX: offsetX, endY: offsetY }]);
         setDrawing(true);
       }
     };
@@ -91,15 +78,15 @@ const DrawLinesOnImage = ({ imageSrc }) => {
       const rect = canvas.getBoundingClientRect();
       const offsetX = touch.clientX - rect.left;
       const offsetY = touch.clientY - rect.top;
-      const lastIndex = lines.length - 1;
-      const updatedLines = [...lines];
+      const lastIndex = line.length - 1;
+      const updatedLine = [...line];
       // Update the current line's end position
-      updatedLines[lastIndex] = {
-        ...updatedLines[lastIndex],
+      updatedLine[lastIndex] = {
+        ...updatedLine[lastIndex],
         endX: offsetX,
         endY: offsetY
       };
-      setLines(updatedLines);
+      setLine(updatedLine);
     };
 
    
@@ -122,17 +109,17 @@ const DrawLinesOnImage = ({ imageSrc }) => {
       canvas.removeEventListener('touchmove', handleTouchMove);
       canvas.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [drawing, lines]); // Re-run effect if `drawing` or `lines` state changes
+  }, [drawing, line]); // Re-run effect if `drawing` or `lines` state changes
 
   // Calculate lengths of all lines
   const calculateLineLengths = () => {
-    const lengths = lines.map((line) => {
+    const lengths = line.map((line) => {
       const dx = line.endX - line.startX;
       const dy = line.endY - line.startY;
       // Pythagorean theorem to calculate line length
       return Math.sqrt(dx * dx + dy * dy);
     });
-    setLineLengths(lengths);
+    setLineLength(lengths);
   };
 
   // Draw lines on the canvas
@@ -150,7 +137,7 @@ const DrawLinesOnImage = ({ imageSrc }) => {
     //   ctx.stroke();
     //   ctx.closePath();
 
-    lines.forEach((line, index) => {
+    line.forEach((line, index) => {
       ctx.beginPath();
       ctx.moveTo(line.startX, line.startY);
       ctx.lineTo(line.endX, line.endY);
@@ -172,7 +159,7 @@ const DrawLinesOnImage = ({ imageSrc }) => {
 
   const adjustPoint = (direction) => {
     const adjustment = 2;
-    setLines((prevLines) => {
+    setLine((prevLines) => {
       const newLines = [...prevLines];
       const line = newLines[selectedLineIndex];
       if (!line) return prevLines; // Guard against no selected line
@@ -207,12 +194,12 @@ const DrawLinesOnImage = ({ imageSrc }) => {
   // Effect hook to re-draw lines when the `lines` state changes
   useEffect(() => {
     drawLines();
-  }, [lines]);
+  }, [line]);
 
   // Reset lines and clear canvas
   const resetLines = () => {
-    setLines([]);
-    setLineLengths([]);
+    setLine([]);
+    setLineLength([]);
     const linesCanvas = linesCanvasRef.current;
     const linesCtx = linesCanvas.getContext('2d');
     linesCtx.clearRect(0, 0, linesCanvas.width, linesCanvas.height);
@@ -220,7 +207,7 @@ const DrawLinesOnImage = ({ imageSrc }) => {
 
   // Submit drawing and line lengths to backend
   const submit = async () => {
-    if (lineLengths.length < 4) {
+    if (lineLength.length < 4) {
       alert('Please draw all lines before submitting.');
       return;
     }
@@ -237,79 +224,10 @@ const DrawLinesOnImage = ({ imageSrc }) => {
     mergedCtx.drawImage(imageCanvas, 0, 0, canvasWidth, canvasHeight);
     mergedCtx.drawImage(linesCanvas, 0, 0, canvasWidth, canvasHeight);
 
-    // Convert merged canvas to a Blob for upload
-    const mergedBlob = await new Promise((resolve) => mergedCanvas.toBlob(resolve, 'image/png'));
-
-    // S3 bucket name and key for the uploaded image
-    const bucketName = 'cornea-defect';
-    const key = `images/${Date.now()}_image.png`;
-
-    // Parameters for S3 upload
-    const s3UploadParams = {
-      Bucket: bucketName,
-      Key: key,
-      Body: mergedBlob,
-      ContentType: 'image/png',
-    };
-
-    try {
-      // Upload the merged image to S3
-      const s3UploadResponse = await s3.upload(s3UploadParams).promise();
-      const s3ImageUrl = s3UploadResponse.Location; // URL of the uploaded image
-
-      // Prepare API request payload
-      const raw = JSON.stringify({
-        "patientId": patientID,
-        "verticalLength": String(lineLengths[0]),
-        "horizontalLength": String(lineLengths[1]),
-        "imageLocation": s3ImageUrl
-      });
-
-      // Send API request to backend
-      const response = await fetch('https://REDACT.us-east-1.amazonaws.com/prod/patient', {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: raw
-      });
-
-      // Handle API response
-      if (response.ok) {
-        alert('Submission successful!');
-      } else {
-        alert('Submission failed. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error submitting data:', error);
-      alert('Error submitting data. Please try again.');
-    }
 
     // Reset lines and patient ID after submission
-    setLines([]);
-    setPatientID('');
-  };
-
-  // Change this function to become more modular 
-  // Calculate object sizes in inches
-  const calculateHorizontalSizeInInches = () => {
-    if (!lineLengths[0] || !lineLengths[1]) {
-      return 'Not enough data to calculate.';
-    }
-    const pixelsPerInch = lineLengths[0];
-    const objectPixels = lineLengths[1];
-    const objectSizeInInches = objectPixels / pixelsPerInch;
-    return objectSizeInInches.toFixed(2) + ' in';
-  };
-
-  const calculateVerticalSizeInInches = () => {
-    if (!lineLengths[0] || !lineLengths[2]) {
-      return 'Not enough data to calculate.';
-    }
-    const pixelsPerInch = lineLengths[0];
-    const objectPixels = lineLengths[2];
-    const objectSizeInInches = objectPixels / pixelsPerInch;
-    return objectSizeInInches.toFixed(2) + ' in';
+    setLine([]);
+    setrefrenceDimensions('');
   };
 
   // Render the component
@@ -334,16 +252,13 @@ const DrawLinesOnImage = ({ imageSrc }) => {
       <div className=" absolute bottom-20">
       {/* <div className="container mx-auto sm:px-6 lg:px-8"> */}
         {/* Input for patient ID */}
-        <label className="text-sm font-semibold mb-1 block">Patient ID:</label>
+        <label className="text-sm font-semibold mb-1 block">Refrence dimensions:</label>
         <input
           type="text"
-          value={patientID}
-          onChange={(e) => setPatientID(e.target.value)}
+          value={referenceDimensions}
+          onChange={(e) => setrefrenceDimensions(e.target.value)}
           className="border rounded-md p-2 mb-2"
         />
-        {/* Display calculated sizes */}
-        <h3>Horizontal Length: {calculateHorizontalSizeInInches()}</h3>
-        <h3>Vertical Length: {calculateVerticalSizeInInches()}</h3>
 
     <div className="isolate inline-flex flex-col items-center rounded-md shadow-sm">
   <button
@@ -399,6 +314,6 @@ const DrawLinesOnImage = ({ imageSrc }) => {
 };
 
 // Export the component for use in other parts of the application
-export default DrawLinesOnImage;
+export default ReferenceObject;
 
 
