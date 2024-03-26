@@ -397,7 +397,8 @@ const DrawLinesOnImage = () => {
       />
       
       <br></br>
-      <div className="absolute bottom-20">
+      <br></br>
+      <div className="absolute bottom-0">
         <label className="text-sm font-semibold mb-1 block">Patient ID:</label>
         <input
           type="text"
