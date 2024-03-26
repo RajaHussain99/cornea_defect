@@ -24,7 +24,7 @@ const ImageUpload = () => {
     const height = image.height;
   
     // Redirect to the "/draw" page along with the uploaded image and its dimensions
-    navigate('/refrence', { state: { uploadedImage, width, height } });
+    navigate('/reference', { state: { uploadedImage, width, height } });
   };
 
   return (

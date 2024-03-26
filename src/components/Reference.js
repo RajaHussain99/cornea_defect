@@ -1,8 +1,8 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import DrawLinesOnImage from './DrawLinesOnImage/DrawLinesOnImage';
+import ReferenceObject from './DrawLinesOnImage/ReferenceObject';
 
-const Draw = () => {
+const Reference = () => {
   const location = useLocation();
   const uploadedImage = location?.state?.uploadedImage;
   const width = location?.state?.width;
@@ -16,11 +16,11 @@ const Draw = () => {
         <div>
           <p className="text-lg font-semibold mb-2">Uploaded Image:</p>
           {/* <img src={uploadedImage} alt="Uploaded" className="rounded-md shadow-md" /> */}
-          <DrawLinesOnImage imageSrc={uploadedImage} />
+          <ReferenceObject imageSrc={uploadedImage} />
         </div>
       )}
     </div>
   );
 };
 
-export default Draw;
+export default Reference;

@@ -1,10 +1,10 @@
 import React from 'react';
-import ReferenceObject from '../components/RefrenceObject';
+import Reference from '../components/Reference';
 
-export default function RefrencePage(){
+export default function ReferencePage(){
     return(
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <ReferenceObject />
+      <Reference />
     </div>
     )
 }

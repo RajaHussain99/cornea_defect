@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid'
 
 // Define the React component, receiving `imageSrc` as a prop
-const ReferenceObject = ({ imageSrc ={uploadedImage} }) => {
+const ReferenceObject = ({ imageSrc }) => {
   // State hooks to manage component state
   const [referenceDimensions, setrefrenceDimensions] = useState(''); // Stores patient ID
   const [lineLength, setLineLength] = useState([]); // Stores lengths of drawn lines
