@@ -54,7 +54,35 @@ const ReferenceObject = ({ imageSrc }) => {
     const canvas = linesCanvasRef.current;
     const ctx = canvas.getContext('2d');
   
+    // const selectLine = (offsetX, offsetY) => {
+    //   console.log('offsetX:', offsetX); 
+    //   console.log('offsetY:', offsetY); 
     
+    //   let lineSelected = false; // Flag to indicate if a line has been selected
+    
+    //   // Loop through lines to find the clicked line
+    //   line.forEach((line, index) => {
+    //     // Check if the click position is within the bounding box of the line
+    //     if (
+    //       offsetX >= Math.min(line.startX, line.endX) &&
+    //       offsetX <= Math.max(line.startX, line.endX) &&
+    //       offsetY >= Math.min(line.startY, line.endY) &&
+    //       offsetY <= Math.max(line.startY, line.endY)
+    //     ) {
+    //       // If the line is clicked, set the selectedLineIndex
+    //       setSelectedLineIndex(index);
+    //       lineSelected = true; // Set flag to true
+    //     }
+    //   });
+    
+    //   console.log(lineSelected)
+    //   // If no line was selected, reset the selectedLineIndex to null
+    //   if (!lineSelected) {
+    //     setSelectedLineIndex(null);
+    //   }
+    // };
+    
+
     // Start drawing line
     const handleTouchStart = (e) => {
       e.preventDefault(); // Prevent scrolling/zooming on touch
@@ -64,9 +92,10 @@ const ReferenceObject = ({ imageSrc }) => {
       const offsetX = touch.clientX - rect.left;
       const offsetY = touch.clientY - rect.top;
       // Limit the number of lines to 1 and start drawing
-      if (line.length < 1) {
+      if (line.length < 2) {
         setLine([...line, { startX: offsetX, startY: offsetY, endX: offsetX, endY: offsetY }]);
         setDrawing(true);
+        // selectLine(offsetX, offsetY);
       }
     };
 
@@ -77,14 +106,14 @@ const ReferenceObject = ({ imageSrc }) => {
       const touch = e.touches[0];
       const rect = canvas.getBoundingClientRect();
       const offsetX = touch.clientX - rect.left;
-      // const offsetY = touch.clientY - rect.top;
+      const offsetY = touch.clientY - rect.top;
       const lastIndex = line.length - 1;
       const updatedLine = [...line];
       // Update the current line's end position
       updatedLine[lastIndex] = {
         ...updatedLine[lastIndex],
         endX: offsetX,
-        // endY: offsetY
+        endY: offsetY
       };
       setLine(updatedLine);
     };
@@ -158,7 +187,10 @@ const ReferenceObject = ({ imageSrc }) => {
   };
 
   const adjustPoint = (direction) => {
-    const adjustment = 2;
+    console.log('Adjusting point:', direction); 
+    setSelectedLineIndex(0);
+    console.log('selectedLineIndex:', selectedLineIndex); 
+    const adjustment = 5;
     setLine((prevLines) => {
       const newLines = [...prevLines];
       const line = newLines[selectedLineIndex];
@@ -174,13 +206,15 @@ const ReferenceObject = ({ imageSrc }) => {
         }
       } else {
         switch (direction) {
-          case 'up': line.endY -= adjustment; break;
-          case 'down': line.endY += adjustment; break;
-          case 'left': line.endX -= adjustment; break;
-          case 'right': line.endX += adjustment; break;
+          // case 'up': line.endY -= adjustment; break;
+          // case 'down': line.endY += adjustment; break;
+          // case 'left': line.endX -= adjustment; break;
+          // case 'right': line.endX += adjustment; break;
           default: break;
         }
       }
+      console.log("--------------------------------")
+      console.log(newLines);
       return newLines;
     });
   };
@@ -261,7 +295,7 @@ const ReferenceObject = ({ imageSrc }) => {
         />
 
     <div className="isolate inline-flex flex-col items-center rounded-md shadow-sm">
-  <button
+  <button onClick={() => adjustPoint('up')}
     type="button"
     className="relative inline-flex items-center rounded-t-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
   >
@@ -269,14 +303,14 @@ const ReferenceObject = ({ imageSrc }) => {
     <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
   </button>
   <span className="isolate inline-flex rounded-md shadow-sm border-t border-transparent">
-    <button
+    <button onClick={() => adjustPoint('left')}
       type="button"
       className="relative inline-flex items-center rounded-l-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
     >
       <span className="sr-only">Previous</span>
       <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
     </button>
-    <button
+    <button onClick={() => adjustPoint('right')}
       type="button"
       className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
     >
@@ -284,7 +318,7 @@ const ReferenceObject = ({ imageSrc }) => {
       <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
     </button>
   </span>
-  <button
+  <button onClick={() => adjustPoint('down')}
     type="button"
     className="relative -mt-px inline-flex items-center rounded-b-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
   >
