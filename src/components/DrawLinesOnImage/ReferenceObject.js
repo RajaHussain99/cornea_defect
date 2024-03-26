@@ -62,10 +62,10 @@ const ReferenceObject = ({ imageSrc }) => {
       const rect = canvas.getBoundingClientRect(); // Get canvas position
       // Calculate touch position relative to the canvas
       const offsetX = touch.clientX - rect.left;
-      // const offsetY = touch.clientY - rect.top;
+      const offsetY = touch.clientY - rect.top;
       // Limit the number of lines to 1 and start drawing
       if (line.length < 1) {
-        setLine([...line, { startX: offsetX}]);
+        setLine([...line, { startX: offsetX, startY: offsetY, endX: offsetX, endY: offsetY }]);
         setDrawing(true);
       }
     };
