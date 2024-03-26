@@ -62,10 +62,10 @@ const ReferenceObject = ({ imageSrc ={uploadedImage} }) => {
       const rect = canvas.getBoundingClientRect(); // Get canvas position
       // Calculate touch position relative to the canvas
       const offsetX = touch.clientX - rect.left;
-      const offsetY = touch.clientY - rect.top;
-      // Limit the number of lines to 3 and start drawing
-      if (line.length < 3) {
-        setLine([...line, { startX: offsetX, startY: offsetY, endX: offsetX, endY: offsetY }]);
+      // const offsetY = touch.clientY - rect.top;
+      // Limit the number of lines to 1 and start drawing
+      if (line.length < 1) {
+        setLine([...line, { startX: offsetX}]);
         setDrawing(true);
       }
     };
@@ -77,14 +77,14 @@ const ReferenceObject = ({ imageSrc ={uploadedImage} }) => {
       const touch = e.touches[0];
       const rect = canvas.getBoundingClientRect();
       const offsetX = touch.clientX - rect.left;
-      const offsetY = touch.clientY - rect.top;
+      // const offsetY = touch.clientY - rect.top;
       const lastIndex = line.length - 1;
       const updatedLine = [...line];
       // Update the current line's end position
       updatedLine[lastIndex] = {
         ...updatedLine[lastIndex],
         endX: offsetX,
-        endY: offsetY
+        // endY: offsetY
       };
       setLine(updatedLine);
     };
