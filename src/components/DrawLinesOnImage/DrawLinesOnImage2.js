@@ -345,13 +345,14 @@ const DrawLinesOnImage = () => {
     switch (unit.toLowerCase()) {
       case 'inch':
       case 'inches':
+      case 'in':
         referencePoint = pixelLength / referenceValue;
         break;
       case 'cm':
-        referencePoint = pixelLength / 96 * 2.54 / referenceValue; // 1 inch = 96 pixels, 1 inch = 2.54 cm
+        referencePoint = (pixelLength) * (2.54 / referenceValue); // 1 inch = 96 pixels, 1 inch = 2.54 cm
         break;
       case 'mm':
-        referencePoint = pixelLength / 96 * 25.4 / referenceValue; // 1 inch = 96 pixels, 1 inch = 25.4 mm
+        referencePoint = (pixelLength) * (25.4 / referenceValue); // 1 inch = 96 pixels, 1 inch = 25.4 mm
         break;
       // Add more cases for other units as needed
       default:
@@ -395,6 +396,7 @@ const DrawLinesOnImage = () => {
         style={{ position: 'absolute', top: '0', zIndex: 2, touchAction: 'none' }} // Add touchAction property
       />
       
+      <br></br>
       <div className="absolute bottom-20">
         <label className="text-sm font-semibold mb-1 block">Patient ID:</label>
         <input
@@ -409,8 +411,9 @@ const DrawLinesOnImage = () => {
         <h2>Vert. Object: {lineLengths[2] ? `${lineLengths[2].toFixed(2)} px` : 'Not drawn yet'}</h2> */}
         {/* <h3>Reference: {calculateReferencePoint()}</h3> */}
         
-
+    <br></br>
     <div className="flex">
+    <br></br>
     <div className="isolate inline-flex flex-col items-center rounded-md shadow-sm">
   {/* <button onClick={() => adjustLine('up', 'start')}
     type="button"
