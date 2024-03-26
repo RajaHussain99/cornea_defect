@@ -1,17 +1,20 @@
 // Import necessary hooks and AWS SDK
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid'
 
 // Define the React component, receiving `imageSrc` as a prop
 const ReferenceObject = ({ imageSrc }) => {
   // State hooks to manage component state
-  const [referenceDimensions, setrefrenceDimensions] = useState(''); // Stores patient ID
+  const [referenceDimensions, setreferenceDimensions] = useState(''); // Stores patient ID
   const [lineLength, setLineLength] = useState([]); // Stores lengths of drawn lines
   const [line, setLine] = useState([]); // Stores line coordinates
   const [drawing, setDrawing] = useState(false); // Flag to manage drawing state
   const [selectedPoint, setSelectedPoint] = useState('start'); // New state for selected point
   const [selectedLineIndex, setSelectedLineIndex] = useState(null); // For joystick to know which line to adjust
+
+  const navigate = useNavigate();
 
   // Canvas dimensions
   const canvasWidth = 378;
@@ -92,7 +95,7 @@ const ReferenceObject = ({ imageSrc }) => {
       const offsetX = touch.clientX - rect.left;
       const offsetY = touch.clientY - rect.top;
       // Limit the number of lines to 1 and start drawing
-      if (line.length < 2) {
+      if (line.length < 1) {
         setLine([...line, { startX: offsetX, startY: offsetY, endX: offsetX, endY: offsetY }]);
         setDrawing(true);
         // selectLine(offsetX, offsetY);
@@ -170,7 +173,7 @@ const ReferenceObject = ({ imageSrc }) => {
       ctx.beginPath();
       ctx.moveTo(line.startX, line.startY);
       ctx.lineTo(line.endX, line.endY);
-      ctx.strokeStyle = index === selectedLineIndex ? 'red' : 'blue'; // Highlight selected line
+      ctx.strokeStyle = index === selectedLineIndex ? 'blue' : 'blue'; // Highlight selected line
       ctx.lineWidth = 2;
       ctx.stroke();
       ctx.closePath();
@@ -186,43 +189,76 @@ const ReferenceObject = ({ imageSrc }) => {
     });
   };
 
-  const adjustPoint = (direction) => {
+  const adjustLine = (direction, point) => {
     console.log('Adjusting point:', direction); 
     setSelectedLineIndex(0);
+    setSelectedPoint(point); // Set the selected point
     console.log('selectedLineIndex:', selectedLineIndex); 
-    const adjustment = 5;
+    const adjustment = 1;
+  
     setLine((prevLines) => {
+      // Create a copy of the previous lines array
       const newLines = [...prevLines];
+      // Retrieve the selected line based on the selected index
       const line = newLines[selectedLineIndex];
-      if (!line) return prevLines; // Guard against no selected line
-      
-      if (selectedPoint === 'start') {
+  
+      // Guard against no selected line
+      if (!line) return prevLines;
+  
+      // Adjust line coordinates based on the selected point and direction
+      if (point === 'start') {
         switch (direction) {
-          case 'up': line.startY -= adjustment; break;
-          case 'down': line.startY += adjustment; break;
-          case 'left': line.startX -= adjustment; break;
-          case 'right': line.startX += adjustment; break;
-          default: break;
+          case 'up':
+            line.startY -= adjustment;
+            if (line.startY < 0) line.startY = 0; // Ensure startY doesn't go below 0
+            break;
+          case 'down':
+            line.startY += adjustment;
+            break;
+          case 'left':
+            line.startX -= adjustment;
+            if (line.startX < 0) line.startX = 0; // Ensure startX doesn't go below 0
+            break;
+          case 'right':
+            line.startX += adjustment;
+            break;
+          default:
+            break;
         }
-      } else {
+      } else if (point === 'end') {
         switch (direction) {
-          // case 'up': line.endY -= adjustment; break;
-          // case 'down': line.endY += adjustment; break;
-          // case 'left': line.endX -= adjustment; break;
-          // case 'right': line.endX += adjustment; break;
-          default: break;
+          case 'up':
+            line.endY -= adjustment;
+            if (line.endY < 0) line.endY = 0; // Ensure endY doesn't go below 0
+            break;
+          case 'down':
+            line.endY += adjustment;
+            break;
+          case 'left':
+            line.endX -= adjustment;
+            if (line.endX < 0) line.endX = 0; // Ensure endX doesn't go below 0
+            break;
+          case 'right':
+            line.endX += adjustment;
+            break;
+          default:
+            break;
         }
       }
-      console.log("--------------------------------")
-      console.log(newLines);
+  
+      // Update the new lines array
+      newLines[selectedLineIndex] = line;
+      const lengths = newLines.map((line) => {
+        const dx = line.endX - line.startX;
+        const dy = line.endY - line.startY;
+        // Pythagorean theorem to calculate line length
+        return Math.sqrt(dx * dx + dy * dy);
+      });
+      setLineLength(lengths); // Update line lengths
       return newLines;
     });
   };
 
-
-
-
-// Logic to reset lines
 
 
   // Effect hook to re-draw lines when the `lines` state changes
@@ -241,7 +277,7 @@ const ReferenceObject = ({ imageSrc }) => {
 
   // Submit drawing and line lengths to backend
   const submit = async () => {
-    if (lineLength.length < 4) {
+    if (lineLength.length < 1) {
       alert('Please draw all lines before submitting.');
       return;
     }
@@ -258,10 +294,13 @@ const ReferenceObject = ({ imageSrc }) => {
     mergedCtx.drawImage(imageCanvas, 0, 0, canvasWidth, canvasHeight);
     mergedCtx.drawImage(linesCanvas, 0, 0, canvasWidth, canvasHeight);
 
+    navigate('/draw', { state: { referenceDimensions: referenceDimensions, pixelLength: lineLength, imageSrc: imageSrc } });
+
 
     // Reset lines and patient ID after submission
     setLine([]);
-    setrefrenceDimensions('');
+    setreferenceDimensions('');
+
   };
 
   // Render the component
@@ -290,12 +329,13 @@ const ReferenceObject = ({ imageSrc }) => {
         <input
           type="text"
           value={referenceDimensions}
-          onChange={(e) => setrefrenceDimensions(e.target.value)}
+          onChange={(e) => setreferenceDimensions(e.target.value)}
           className="border rounded-md p-2 mb-2"
         />
 
+<div className="flex">
     <div className="isolate inline-flex flex-col items-center rounded-md shadow-sm">
-  <button onClick={() => adjustPoint('up')}
+  <button onClick={() => adjustLine('up', 'start')}
     type="button"
     className="relative inline-flex items-center rounded-t-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
   >
@@ -303,14 +343,14 @@ const ReferenceObject = ({ imageSrc }) => {
     <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
   </button>
   <span className="isolate inline-flex rounded-md shadow-sm border-t border-transparent">
-    <button onClick={() => adjustPoint('left')}
+    <button onClick={() => adjustLine('left','start')}
       type="button"
       className="relative inline-flex items-center rounded-l-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
     >
       <span className="sr-only">Previous</span>
       <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
     </button>
-    <button onClick={() => adjustPoint('right')}
+    <button onClick={() => adjustLine('right','start')}
       type="button"
       className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
     >
@@ -318,7 +358,7 @@ const ReferenceObject = ({ imageSrc }) => {
       <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
     </button>
   </span>
-  <button onClick={() => adjustPoint('down')}
+  <button onClick={() => adjustLine('down','start')}
     type="button"
     className="relative -mt-px inline-flex items-center rounded-b-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
   >
@@ -327,6 +367,46 @@ const ReferenceObject = ({ imageSrc }) => {
   </button>
 </div>
 
+ <div style={{ width: '50px' }}></div>
+
+<div className="isolate inline-flex flex-col items-center rounded-md shadow-sm">
+  <button onClick={() => adjustLine('up', 'end')}
+    type="button"
+    className="relative inline-flex items-center rounded-t-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+  >
+    <span className="sr-only">Previous</span>
+    <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
+  </button>
+  <span className="isolate inline-flex rounded-md shadow-sm border-t border-transparent">
+    <button onClick={() => adjustLine('left','end')}
+      type="button"
+      className="relative inline-flex items-center rounded-l-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+    >
+      <span className="sr-only">Previous</span>
+      <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+    </button>
+    <button onClick={() => adjustLine('right','end')}
+      type="button"
+      className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+    >
+      <span className="sr-only">Next</span>
+      <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+    </button>
+  </span>
+  <button onClick={() => adjustLine('down','end')}
+    type="button"
+    className="relative -mt-px inline-flex items-center rounded-b-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+  >
+    <span className="sr-only">Next</span>
+    <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+  </button>
+</div>
+</div>
+
+<div style={{ margin: '0 10px' }}></div>
+{lineLength.map((length, index) => (
+  <div key={index}>{`Length ${index + 1}: ${length.toFixed(2)} px`}</div>
+))}
         {/* Buttons for reset and submit */}
         <div className="flex">
           <button
