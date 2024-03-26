@@ -122,11 +122,17 @@ const DrawLinesOnImage = () => {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    lines.forEach(line => {
+    lines.forEach((line, index) => {
       ctx.beginPath();
       ctx.moveTo(line.startX, line.startY);
       ctx.lineTo(line.endX, line.endY);
-      ctx.strokeStyle = 'blue';
+      // ctx.strokeStyle = 'blue';
+      // Set different colors based on the index or any other condition
+      if (index === 0) {
+        ctx.strokeStyle = 'blue'; // First line is blue
+      } else {
+        ctx.strokeStyle = 'green'; // Other lines are green
+      }
       ctx.lineWidth = 2;
       ctx.stroke();
       ctx.closePath();
@@ -311,7 +317,7 @@ const DrawLinesOnImage = () => {
 
   const calculateHorizontalSizeInInches = () => {
     if (!lineLengths[0]) {
-        return 'Not enough data to calculate.';
+        return 'Draw Line';
     }
 
     const pixelsPerInch = calculateReferencePoint(); // Pixel length of the 1-inch object
@@ -319,7 +325,11 @@ const DrawLinesOnImage = () => {
 
     const objectSizeInInches = objectPixels / pixelsPerInch;
 
-    return objectSizeInInches.toFixed(2) + ' in';
+    return (
+      <span style={{ color: 'blue' }}>
+        <b>{objectSizeInInches.toFixed(2)} in</b>
+      </span>
+    );
   };
 
   const calculateReferencePoint = () => {
@@ -355,7 +365,7 @@ const DrawLinesOnImage = () => {
 
   const calculateVerticalSizeInInches = () => {
     if (!lineLengths[0] || !lineLengths[1]) {
-        return 'Not enough data to calculate.';
+        return 'Draw Line ';
     }
 
     const pixelsPerInch = calculateReferencePoint(); // Pixel length of the 1-inch object
@@ -363,7 +373,11 @@ const DrawLinesOnImage = () => {
 
     const objectSizeInInches = objectPixels / pixelsPerInch;
 
-    return objectSizeInInches.toFixed(2) + ' in';
+    return (
+      <span style={{ color: 'green' }}>
+        <b>{objectSizeInInches.toFixed(2)} in</b>
+      </span>
+    );
   };
 
   return (
@@ -385,6 +399,7 @@ const DrawLinesOnImage = () => {
         <label className="text-sm font-semibold mb-1 block">Patient ID:</label>
         <input
           type="text"
+          placeholder="patient_007"
           value={patientID}
           onChange={(e) => setPatientID(e.target.value)}
           className="border rounded-md p-2 mb-2"
@@ -393,10 +408,9 @@ const DrawLinesOnImage = () => {
         <h2>Hor Object: {lineLengths[1] ? `${lineLengths[1].toFixed(2)} px` : 'Not drawn yet'}</h2>
         <h2>Vert. Object: {lineLengths[2] ? `${lineLengths[2].toFixed(2)} px` : 'Not drawn yet'}</h2> */}
         {/* <h3>Reference: {calculateReferencePoint()}</h3> */}
-        <h3>Horizontal Length: {calculateHorizontalSizeInInches()}</h3>
-        <h3>Vertical Length: {calculateVerticalSizeInInches()}</h3>
+        
 
-        <div className="flex">
+    <div className="flex">
     <div className="isolate inline-flex flex-col items-center rounded-md shadow-sm">
   {/* <button onClick={() => adjustLine('up', 'start')}
     type="button"
@@ -411,14 +425,14 @@ const DrawLinesOnImage = () => {
       className="relative inline-flex items-center rounded-l-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
     >
       <span className="sr-only">Previous</span>
-      <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+      <ChevronLeftIcon className="h-5 w-5 text-blue-500" aria-hidden="true" />
     </button>
     <button onClick={() => adjustLine('right','start', 0)}
       type="button"
       className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
     >
       <span className="sr-only">Next</span>
-      <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+      <ChevronRightIcon className="h-5 w-5 text-blue-500" aria-hidden="true" />
     </button>
   </span>
   {/* <button onClick={() => adjustLine('down','start')}
@@ -432,6 +446,7 @@ const DrawLinesOnImage = () => {
 
  <div style={{ width: '50px' }}></div>
 
+ <div className="flex">
 <div className="isolate inline-flex flex-col items-center rounded-md shadow-sm">
   
   <span className="isolate inline-flex rounded-md shadow-sm border-t border-transparent">
@@ -447,14 +462,14 @@ const DrawLinesOnImage = () => {
       className="relative inline-flex items-center rounded-l-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
     >
       <span className="sr-only">Previous</span>
-      <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+      <ChevronLeftIcon className="h-5 w-5 text-blue-500" aria-hidden="true" />
     </button>
     <button onClick={() => adjustLine('right','end', 0)}
       type="button"
       className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
     >
       <span className="sr-only">Next</span>
-      <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+      <ChevronRightIcon className="h-5 w-5 text-blue-500" aria-hidden="true" />
     </button>
   </span>
   {/* <button onClick={() => adjustLine('down','end')}
@@ -466,7 +481,9 @@ const DrawLinesOnImage = () => {
   </button> */}
 </div>
 </div>
-<br></br>
+</div>
+
+
 <div className="flex">
 <div className="isolate inline-flex flex-col items-center rounded-md shadow-sm">
 <button onClick={() => adjustLine('up', 'start', 1)}
@@ -474,7 +491,7 @@ const DrawLinesOnImage = () => {
     className="relative inline-flex items-center rounded-t-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
   >
     <span className="sr-only">Previous</span>
-    <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
+    <ChevronUpIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
   </button>
 
   <button onClick={() => adjustLine('down','start', 1)}
@@ -482,7 +499,7 @@ const DrawLinesOnImage = () => {
     className="relative -mt-px inline-flex items-center rounded-b-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
   >
     <span className="sr-only">Next</span>
-    <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+    <ChevronDownIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
   </button>
 
   
@@ -492,7 +509,7 @@ const DrawLinesOnImage = () => {
     className="relative inline-flex items-center rounded-t-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
   >
     <span className="sr-only">Previous</span>
-    <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
+    <ChevronUpIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
   </button>
 
   <button onClick={() => adjustLine('down','end', 1)}
@@ -500,10 +517,13 @@ const DrawLinesOnImage = () => {
     className="relative -mt-px inline-flex items-center rounded-b-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
   >
     <span className="sr-only">Next</span>
-    <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+    <ChevronDownIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
   </button>
 
-        
+
+
+  <h4>Horizontal Length: {calculateHorizontalSizeInInches()}</h4>
+  <h4>Vertical Length: {calculateVerticalSizeInInches()}</h4>
 
 </div>
 </div>
