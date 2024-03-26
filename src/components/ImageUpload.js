@@ -19,11 +19,12 @@ const ImageUpload = () => {
     // Get the dimensions of the uploaded image
     const image = new Image();
     image.src = uploadedImage;
+    
     const width = image.width;
     const height = image.height;
   
     // Redirect to the "/draw" page along with the uploaded image and its dimensions
-    navigate('/draw', { state: { uploadedImage, width, height } });
+    navigate('/reference', { state: { uploadedImage, width, height } });
   };
 
   return (
