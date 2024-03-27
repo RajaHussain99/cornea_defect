@@ -396,9 +396,8 @@ const DrawLinesOnImage = () => {
         style={{ position: 'absolute', top: '0', zIndex: 2, touchAction: 'none' }} // Add touchAction property
       />
       
-      <br></br>
-      <br></br>
-      <div className="absolute bottom-0">
+      
+      <div className="absolute bottom-1">
         <label className="text-sm font-semibold mb-1 block">Patient ID:</label>
         <input
           type="text"

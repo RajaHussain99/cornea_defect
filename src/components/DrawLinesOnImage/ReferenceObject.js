@@ -322,12 +322,14 @@ const ReferenceObject = ({ imageSrc }) => {
       />
 
       {/* UI for displaying information and actions */}
-      <div className=" absolute bottom-20">
+      <div className="absolute bottom-5">
+        <br></br>
       {/* <div className="container mx-auto sm:px-6 lg:px-8"> */}
         {/* Input for patient ID */}
         <label className="text-sm font-semibold mb-1 block">Refrence dimensions:</label>
         <input
           type="text"
+          placeholder="1 in"
           value={referenceDimensions}
           onChange={(e) => setreferenceDimensions(e.target.value)}
           className="border rounded-md p-2 mb-2"
